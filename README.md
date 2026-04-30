@@ -6,8 +6,7 @@ Minimal full-stack simulation of a live auction platform built for the PayNest i
 
 - Frontend: `https://bidonv.onrender.com`
 - Backend API: `https://bidon-d041.onrender.com`
-- GitHub repository: `TO_BE_ADDED_AFTER_PUSH`
-
+- 
 ## Stack
 
 - Backend: NestJS + Prisma + PostgreSQL + Socket.IO
