@@ -4,8 +4,8 @@ Minimal full-stack simulation of a live auction platform built for the PayNest i
 
 ## Live Deployment
 
-- Frontend: `TO_BE_ADDED_AFTER_DEPLOYMENT`
-- Backend API: `TO_BE_ADDED_AFTER_DEPLOYMENT`
+- Frontend: `https://bidonv.onrender.com`
+- Backend API: `https://bidon-d041.onrender.com`
 - GitHub repository: `TO_BE_ADDED_AFTER_PUSH`
 
 ## Stack
