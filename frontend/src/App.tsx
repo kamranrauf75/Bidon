@@ -34,6 +34,23 @@ function toFriendlyError(error: unknown, fallback: string) {
   return fallback;
 }
 
+function getStatusLabel(remainingSeconds: number) {
+  return remainingSeconds > 0 ? 'ACTIVE' : 'ENDED';
+}
+
+function formatDuration(totalSeconds: number) {
+  const seconds = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  const parts: string[] = [];
+
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds}s`);
+  return parts.join(' ');
+}
+
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
@@ -142,11 +159,19 @@ function Dashboard({ socket }: { socket: Socket }) {
   };
 
   return (
-    <div className="container">
-      <h1>PayNest Real-Time Auction Dashboard</h1>
+    <div className="pageShell">
+      <div className="container">
+        <header className="pageHeader card">
+          <p className="kicker">Live Bidding Studio</p>
+          <h1>PayNest Real-Time Auction Dashboard</h1>
+          <p className="lead">
+            Launch premium auctions, track live offers, and manage bids in a sleek command center.
+          </p>
+        </header>
 
-      <section className="card">
-        <h2>Create Auction Item</h2>
+        <section className="card">
+          <h2>Create Auction Item</h2>
+          <p className="sectionText">Start a new listing and open it for live bidding in seconds.</p>
         <form onSubmit={onSubmit} className="grid">
           <input
             required
@@ -167,7 +192,7 @@ function Dashboard({ socket }: { socket: Socket }) {
             min={1}
             step={0.01}
             type="number"
-            placeholder="Starting price"
+            placeholder="Starting price ($)"
             value={form.startingPrice}
             onChange={(event) =>
               setForm((current) => ({ ...current, startingPrice: event.target.value }))
@@ -184,35 +209,47 @@ function Dashboard({ socket }: { socket: Socket }) {
               setForm((current) => ({ ...current, durationSeconds: event.target.value }))
             }
           />
-          <button type="submit">Create Auction</button>
+          <button className="buttonPrimary" type="submit">
+            Create Auction
+          </button>
         </form>
         {formError && <p className="error">{formError}</p>}
-      </section>
+        </section>
 
-      <section className="card">
-        <h2>Available Auctions</h2>
-        {loading && <p>Loading auctions...</p>}
-        {error && <p className="error">{error}</p>}
-        {!loading && auctions.length === 0 && <p>No auctions available yet.</p>}
-        <div className="auctionList">
-          {auctions.map((auction) => (
-            <div key={auction.id} className="auctionCard">
-              <h3>{auction.name}</h3>
-              <p>{auction.description}</p>
-              <p>Starting price: {formatMoney(auction.startingPrice)}</p>
-              <p>
-                Current highest bid:{' '}
-                {auction.currentHighestBid
-                  ? formatMoney(auction.currentHighestBid.amount)
-                  : 'No bids yet'}
-              </p>
-              <p>Time left: {auction.remainingSeconds}s</p>
-              <p>Status: {auction.remainingSeconds > 0 ? 'ACTIVE' : 'ENDED'}</p>
-              <Link to={`/auctions/${auction.id}`}>Open details</Link>
-            </div>
-          ))}
-        </div>
-      </section>
+        <section className="card">
+          <h2>Available Auctions</h2>
+          <p className="sectionText">Discover active lots and jump into any auction room.</p>
+          {loading && <p className="muted">Loading auctions...</p>}
+          {error && <p className="error">{error}</p>}
+          {!loading && auctions.length === 0 && <p className="muted">No auctions available yet.</p>}
+          <div className="auctionList">
+            {auctions.map((auction) => (
+              <article key={auction.id} className="auctionCard">
+                <div className="auctionCardHead">
+                  <h3>{auction.name}</h3>
+                  <span className={`statusPill ${getStatusLabel(auction.remainingSeconds).toLowerCase()}`}>
+                    {getStatusLabel(auction.remainingSeconds)}
+                  </span>
+                </div>
+                <p>{auction.description}</p>
+                <div className="auctionMeta">
+                  <p>Starting price: {formatMoney(auction.startingPrice)}</p>
+                  <p>
+                    Current highest bid:{' '}
+                    {auction.currentHighestBid
+                      ? formatMoney(auction.currentHighestBid.amount)
+                      : 'No bids yet'}
+                  </p>
+                  <p>Time left: {formatDuration(auction.remainingSeconds)}</p>
+                </div>
+                <Link className="detailsLink" to={`/auctions/${auction.id}`}>
+                  Open details
+                </Link>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
@@ -310,45 +347,75 @@ function AuctionDetail({ socket }: { socket: Socket }) {
 
   return (
     <div className="container">
-      <button onClick={() => navigate('/')}>Back to dashboard</button>
+      <button className="buttonSecondary" onClick={() => navigate('/')}>
+        Back to dashboard
+      </button>
       {error && <p className="error">{error}</p>}
       {info && <p className="info">{info}</p>}
       {!auction ? (
-        <p>Loading auction...</p>
+        <p className="muted">Loading auction...</p>
       ) : (
         <section className="card">
-          <h2>{auction.name}</h2>
+          <div className="auctionCardHead">
+            <h2>{auction.name}</h2>
+            <span className={`statusPill ${getStatusLabel(auction.remainingSeconds).toLowerCase()}`}>
+              {getStatusLabel(auction.remainingSeconds)}
+            </span>
+          </div>
           <p>{auction.description}</p>
-          <p>Starting price: {formatMoney(auction.startingPrice)}</p>
-          <p>
-            Current highest bid:{' '}
-            {auction.currentHighestBid ? formatMoney(auction.currentHighestBid.amount) : 'No bids yet'}
-          </p>
-          <p>Remaining time: {auction.remainingSeconds}s</p>
-          <p>Status: {auction.remainingSeconds > 0 ? 'ACTIVE' : 'ENDED'}</p>
+          <div className="detailGrid">
+            <div className="detailRow">
+              <p className="detailLabel">Starting price</p>
+              <p className="detailValue">{formatMoney(auction.startingPrice)}</p>
+            </div>
+            <div className="detailRow">
+              <p className="detailLabel">Current highest bid</p>
+              <p className="detailValue">
+                {auction.currentHighestBid ? formatMoney(auction.currentHighestBid.amount) : 'No bids yet'}
+              </p>
+            </div>
+            <div className="detailRow">
+              <p className="detailLabel">Time remaining</p>
+              <p className="detailValue">{formatDuration(auction.remainingSeconds)}</p>
+            </div>
+            <div className="detailRow">
+              <p className="detailLabel">Auction status</p>
+              <p className="detailValue">{getStatusLabel(auction.remainingSeconds)}</p>
+            </div>
+          </div>
 
-          <form onSubmit={placeBid} className="grid">
-            <input
-              min={1}
-              step={1}
-              required
-              type="number"
-              value={userId}
-              onChange={(event) => setUserId(event.target.value)}
-              placeholder="User ID (1-100)"
-            />
-            <input
-              min={0.01}
-              step={0.01}
-              required
-              type="number"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              placeholder="Bid amount"
-            />
-            <button type="submit" disabled={auction.remainingSeconds === 0}>
-              Place Bid
-            </button>
+          <form onSubmit={placeBid} className="bidForm">
+            <div className="formRow">
+              <label htmlFor="user-id-input">User ID</label>
+              <input
+                id="user-id-input"
+                min={1}
+                step={1}
+                required
+                type="number"
+                value={userId}
+                onChange={(event) => setUserId(event.target.value)}
+                placeholder="User ID (1-100)"
+              />
+            </div>
+            <div className="formRow">
+              <label htmlFor="bid-amount-input">Bid Amount</label>
+              <input
+                id="bid-amount-input"
+                min={0.01}
+                step={0.01}
+                required
+                type="number"
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+                placeholder="Bid amount ($)"
+              />
+            </div>
+            <div className="formRow formActionRow">
+              <button className="buttonPrimary" type="submit" disabled={auction.remainingSeconds === 0}>
+                Place Bid
+              </button>
+            </div>
           </form>
         </section>
       )}

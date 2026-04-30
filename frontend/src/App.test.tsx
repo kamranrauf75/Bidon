@@ -70,8 +70,8 @@ describe('App', () => {
     await screen.findByText('Create Auction Item');
     await userEvent.type(screen.getByPlaceholderText('Item name'), 'Phone');
     await userEvent.type(screen.getByPlaceholderText('Description'), 'New model');
-    await userEvent.clear(screen.getByPlaceholderText('Starting price'));
-    await userEvent.type(screen.getByPlaceholderText('Starting price'), '40');
+    await userEvent.clear(screen.getByPlaceholderText('Starting price ($)'));
+    await userEvent.type(screen.getByPlaceholderText('Starting price ($)'), '40');
     await userEvent.clear(screen.getByPlaceholderText('Duration (seconds)'));
     await userEvent.type(screen.getByPlaceholderText('Duration (seconds)'), '30');
     await userEvent.click(screen.getByRole('button', { name: 'Create Auction' }));

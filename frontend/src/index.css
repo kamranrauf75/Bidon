@@ -2,8 +2,8 @@
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #101828;
-  background-color: #f6f8fb;
+  color: #ececec;
+  background-color: #050505;
 }
 
 * {
@@ -13,6 +13,8 @@
 body {
   margin: 0;
   min-width: 320px;
+  color: #dedede;
+  background: #050505;
 }
 
 #root {
@@ -21,24 +23,45 @@ body {
 
 input,
 button {
-  border-radius: 8px;
-  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  border: 1px solid #4b4025;
   padding: 0.6rem 0.8rem;
   font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.08s ease;
+}
+
+input {
+  background: rgba(255, 255, 255, 0.04);
+  color: #f3f3f3;
+}
+
+input:focus {
+  outline: none;
+  border-color: #d4af37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.22);
 }
 
 button {
-  background: #111827;
-  color: #fff;
+  background: #1e1e1e;
+  color: #f8f8f8;
   cursor: pointer;
 }
 
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
 button:disabled {
-  background: #98a2b3;
+  background: #575757;
+  border-color: #575757;
   cursor: not-allowed;
 }
 
 a {
-  color: #175cd3;
+  color: #f5d77d;
   text-decoration: none;
+}
+
+p {
+  margin: 0.45rem 0;
 }
